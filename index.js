@@ -14,10 +14,10 @@ app.get('/',(req,res) => {
 
 require('./api-routes/routes')(app);
 
-console.log("before Running on port");
+//console.log("before Running on port");
 //creating Mysql database connection
 connection.connect();
-console.log("after Running on port");
+//console.log("after Running on port");
 
 global.db = connection;
 
