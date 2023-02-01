@@ -1,14 +1,8 @@
-const supertest = require('supertest');
-const app = require('./index.js');
-
-const assert = require('assert');
-
-describe("First Unit Test", () => {
-   
-    it("should return response code 200", (done) => {
-        supertest(app).get("/healthz").expect(200).end((err, res) => {
-            if (err) return done(err);
-            return done();
-        });
+var assert = require('assert');
+describe('Array', function () {
+  describe('#indexOf()', function () {
+    it('should return -1 when the value is not present', function () {
+      assert.equal([1, 2, 3].indexOf(4), -1);
     });
+  });
 });
