@@ -29,12 +29,12 @@ exports.create = (req, res) => {
 
 	if (!first_name || !last_name || !password || !email_address) {
 		res.status(400).send({
-			Message: "Please provide all required fields - first_name, last_name, password, email_address!"
+			Message: "Please fill out the first name, last name, password, and email address fields!"
 		});
 	}
 	if (len < 8 || len > 64) {
 		res.status(400).send({
-			Message: "Length of Password should be greater than 8 and it should contain only characters !"
+			Message: "Password length should be larger than 8 and only contain characters !"
 		});
 	} else if (!validemail) {
 		res.status(400).send({
@@ -42,11 +42,11 @@ exports.create = (req, res) => {
 		});
 	} else if (!validfname) {
 		res.status(400).send({
-			Message: "Please enter a valid first_name with characters!"
+			Message: "Please enter a valid first name with characters!"
 		});
 	} else if (!validlname) {
 		res.status(400).send({
-			Message: "Please enter a valid last_name with characters!"
+			Message: "Please enter a valid last name with characters!"
 		});
 	} else {
 		bcrypt.hash(password, saltRounds, function(err, hash) {
@@ -148,7 +148,7 @@ exports.update = (req, res) => {
 		res.end('Access denied')
 	} else if (!first_name || !last_name || !password1 || !email_address) {
 		res.status(400).send({
-			Message: "Please provide all required fields - first_name, last_name, password, username!"
+			Message: "Please fill out the first name, last name, password, and email address fields!"
 		});
 	} else if (account_created || account_updated || id) {
 		res.status(400).send({
