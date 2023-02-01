@@ -9,3 +9,5 @@ Pre requisites
 2. Npm is installed in your system
    
    Type npm -v in your terminal to check npm version
+
+3. MySQl is installed in your system
