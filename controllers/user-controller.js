@@ -169,6 +169,7 @@ exports.update = (req, res) => {
 				valid = compare(username, email_address) && valid;
 				if (valid) {
 					console.log("validated");
+					res.end('Updated Successfully!');
 
 					bcrypt.hash(password1, saltRounds, function(err, hash) {
 						var sql = "Update cloud_user set first_name = '" + first_name + "', last_name = '" + last_name + "'" +
