@@ -34,7 +34,7 @@ exports.create = (req, res) => {
 	}
 	if (len < 8 || len > 64) {
 		res.status(400).send({
-			Message: "Password length should be larger than 8 and only contain characters !"
+			Message: "Password length should be larger than 8 and only contain characters!"
 		});
 	} else if (!validemail) {
 		res.status(400).send({
@@ -96,8 +96,8 @@ exports.view = (req, res) => {
 		var username = credentials.name;
 		var password = credentials.pass;
 		var sqlQuery = "Select id,username, password, first_name,last_name,  account_created, " +
-			"account_updated from cloud_user where username = '" + username + "'";
-
+			"account_updated from cloud_schema.cloud_user where username = '" + username + "'";
+		
 		db.query(sqlQuery, function(err, result) {
 			if (err) {
 				throw err;
@@ -105,7 +105,7 @@ exports.view = (req, res) => {
 				var valid = true;
 				var UserFound;
 
-				valid = compare(username, result[0].email_address) && valid;
+				valid = compare(username, result[0].username) && valid;
 				valid = bcrypt.compareSync(password, result[0].password) && valid;
 
 				if (valid) {
