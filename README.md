@@ -19,4 +19,4 @@ Steps to run web app
 2. Type "npm install"
 3. Type "node index.js"
 4. Open Postman enter the port number in which the app is running- send the value
-5. open MySQL workbench to check the value has been entered or not
+5. open MySQL workbench to check the value has been entered or not....
