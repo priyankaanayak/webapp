@@ -3,6 +3,7 @@ const uuidv4 = require('uuid');
 const bcrypt = require('bcrypt');
 const auth = require('basic-auth');
 const compare = require('tsscmp');
+const { connection } = require('mongoose');
 const saltRounds = 10;
 
 exports.health=(req,res) =>{
@@ -52,10 +53,12 @@ exports.create = (req, res) => {
 		bcrypt.hash(password, saltRounds, function(err, hash) {
 			if (err) {
 				console.log("Password can't be hashed !");
-			} else {
+			}
+			else {
+		
 				var sql = "Insert into `cloud_user`(`id`,`username`,`password`,`first_name`,`last_name`,`account_created`, `account_updated`)" +
 					"VALUES ('" + id + "','" + email_address + "','" + hash + "','" + first_name + "','" + last_name + "','" + dateval + "', '" + dateval + "')";
-				var query = db.query(sql, function(err, result) {
+				var query = db.query(sql, function(err, result){
 					if (err) {
 						res.status(400).send("User with this email already exist !");
 					} else {
@@ -67,6 +70,7 @@ exports.create = (req, res) => {
 								res.send({
 									message: "User not created!"
 								});
+								
 							} else {
 								const UserFound = {
 									id: result[0].id,
@@ -89,7 +93,7 @@ exports.create = (req, res) => {
 exports.view = (req, res) => {
 	var credentials = auth(req);
 	if (!credentials) {
-		res.statusCode = 401
+		res.statusCode = 403
 		res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
 		res.end('Access denied')
 	} else {
@@ -119,12 +123,15 @@ exports.view = (req, res) => {
 					}
 					res.statusCode = 200
 					res.send(UserFound);
-				} else {
+				} else{
 					res.statusCode = 401
 					res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
 					res.end('Access denied')
 				}
+				
 			}
+			
+			
 		});
 	}
 }
@@ -143,7 +150,7 @@ exports.update = (req, res) => {
 	dateval = dateval.toISOString();
 
 	if (!credentials) {
-		res.statusCode = 401
+		res.statusCode = 403
 		res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
 		res.end('Access denied')
 	} else if (!first_name || !last_name || !password1 || !email_address) {
