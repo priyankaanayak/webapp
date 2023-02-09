@@ -164,7 +164,12 @@ exports.update = (req, res) => {
 		res.status(400).send({
 			Message: "Fields apart from 'first_name, last_name, password, email_address' should not be in request body !"
 		});
-	} else {
+	} else if(Object.keys(req.body).length > 4){
+		res.status(400).send({
+			Message: "You have given additional fields!"
+	  });
+}
+	else {
 		var username = credentials.name;
 		var password = credentials.pass;
 

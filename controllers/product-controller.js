@@ -124,11 +124,17 @@ exports.viewProducts = (req, res) => {
                         console.log(err);
                     });
 
-                }else{
+                }
+                else{
                     res.statusCode = 401
                     res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
                     res.end('Access denied')
                 }
+                // else {
+                //     res.status(403).send({
+                //       message: 'Product not found or you are not authorized to access this product.'
+                //     });
+                //   }
 
             }).catch(function(err){
                 res.statusCode = 401
@@ -229,7 +235,7 @@ exports.viewProducts = (req, res) => {
 
                         if (!name || !description || !sku || !manufacturer || !quantity) {
                             res.status(400).send({
-                                Message: "Please provide all required fields - name, date_added, date_last_updated, quantity, manufacturer, description, sku !"
+                                Message: "Please provide all required fields - name, description, sku, manufacturer, quantity   !"
                             });
     
                         } else if (isNaN(quantity) || quantity < 0 ) {
@@ -311,7 +317,9 @@ exports.viewProducts = (req, res) => {
             }).then(function(result) {
                 var valid = true;
                 valid = bcrypt.compareSync(password, result[0].password) && valid;
+                
                 if (valid) {
+                    
                     models.Product.destroy({
                         where: {
                             id: id,
@@ -325,7 +333,7 @@ exports.viewProducts = (req, res) => {
                         res.status(403).send({
                             message: 'Product not found or you are not authorized to delete this product.'
                             });
-    
+
                     }).catch(function(err) {
                         console.log(err);
                         res.status(404).send({
@@ -351,13 +359,32 @@ exports.viewProducts = (req, res) => {
     }
 
     exports.updatingProduct = (req, res) => {
-
+        const importantFields = ["name", "description", "manufacturer","quantity","sku"];
+        const RequestBodyKeys = req.body ? Object.keys(req.body) : null;
+        let flag = true;
+        if (!RequestBodyKeys || !RequestBodyKeys.length) {
+            return res.status(400).json("Correct details are not provided for updation of information");
+        }
+        RequestBodyKeys.forEach(val => {
+            if (importantFields.indexOf(val) < 0) {
+                flag = false;
+            }
+        })
+        if (!flag) {
+            userFlag = true;
+            return res.status(403).json("You can update name, description,manufacturer and quantity only!");
+        }
+    
+        const account_updated = new Date().toISOString();
+     
+    
         var credentials = auth(req);
         if (!credentials) {
           res.statusCode = 401;
           res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"');
           res.end('Unauthorized');
-        } else {
+        } 
+        else {
           var username = credentials.name;
           var password = credentials.pass;
       
@@ -389,6 +416,7 @@ exports.viewProducts = (req, res) => {
                 }
               }).catch(function(err) {
                 console.log(err);
+                
                 res.status(400).send({
                   message: 'Error updating product.'
                 });
