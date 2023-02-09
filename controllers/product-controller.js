@@ -1,0 +1,409 @@
+const auth = require('basic-auth');
+const compare = require('tsscmp');
+const saltRounds = 10;
+var models = require('../models');
+const {Sequelize, DataTypes} = require('sequelize')
+const uuidv4 = require('uuid');
+
+//const uuidv4 = require('uuid/v4');
+
+const bcrypt = require('bcrypt');
+const { INTEGER } = require('sequelize');
+
+
+exports.create = (req, res) => {
+    
+    
+    var credentials = auth(req);
+    if (!credentials) {
+        console.log("hello");
+        res.statusCode = 401
+        res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+        res.end('Access denied')
+    } else {
+        var username = credentials.name;
+        var password = credentials.pass;
+
+
+        models.User.findAll({
+                where: {
+                    username
+                }
+            }).then(function(result) {
+                
+                var valid = true;
+                valid = bcrypt.compareSync(password, result[0].password) && valid;
+                if (valid) {
+                    //var uuid = uuidv4.v4();
+                    var name = req.body.name;
+                    var description = req.body.description;
+                    var sku = req.body.sku;
+                    var manufacturer = req.body.manufacturer;
+                    //categories = categories.join();
+                    let quantity = req.body.quantity;
+                    
+                    var owner_user_id = result[0].id;
+                    var datevalts = new Date();
+                    datevalts = datevalts.toISOString();
+                    var dateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+
+                    if (!name || !description || !sku || !manufacturer || !quantity ) {
+                        res.status(400).send({
+                            Message: "Please provide all required fields - name, quantity, manufacturer, description, sku !"
+                        });
+                    } else if (isNaN(quantity) || quantity <= -1) {
+                        res.status(400).send({
+                            Message: "Please enter correct quantity!"
+                        });
+                    } else {
+                        models.Product.create({
+                            //id: uuid,
+                            //created_ts: datevalts,
+                            //updated_ts: datevalts,
+                            name: name,
+                            description: description,
+                            sku: sku,
+                            manufacturer: manufacturer,
+                            quantity: quantity,
+                            date_added: datevalts,
+                            date_last_updated: datevalts,
+                            owner_user_id: owner_user_id
+                        }).then(function(Product) {
+                            res.status(201).send(Product);
+                        }).catch(function(err) {
+                            console.log(err);
+                            res.status(400).send("Issue while creating Product !");
+                        });
+
+                    }
+                } else {
+                    res.statusCode = 401
+                    res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                    res.end('Access denied')
+                }
+            })
+            .catch(function(err) {
+                console.log(err);
+                res.statusCode = 401
+                res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                res.end('Access denied')
+            });
+    }
+}
+
+exports.viewProducts = (req, res) => {
+    var credentials = auth(req);
+    if (!credentials) {
+        console.log("hello");
+        res.statusCode = 401
+        res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+        res.end('Access Denied')
+    } else {
+        var username = credentials.name;
+        var password = credentials.pass;
+        models.User.findAll({
+                where: {
+                    username
+                }
+            }).then(function(result) {
+                var valid = true;
+                valid = bcrypt.compareSync(password, result[0].password) && valid;
+                
+                if (valid) {
+                    
+                    models.Product.findOne({
+                        where: {
+                            id: req.params.id
+                        }
+                    }).then(function(UserProducts){
+                        
+                            res.status(200).send(UserProducts);
+
+                     
+                    }).catch(function(err){
+                        console.log(err);
+                    });
+
+                }else{
+                    res.statusCode = 401
+                    res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                    res.end('Access denied')
+                }
+
+            }).catch(function(err){
+                res.statusCode = 401
+                    res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                    res.end('Access denied')
+            });
+
+        }   
+
+    }
+
+    // exports.getProduct = (req, res) => {
+    //     var credentials = auth(req);
+    //     if (!credentials) {
+    //         console.log("hello");
+    //         res.statusCode = 401
+    //         res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+    //         res.end('Access denied')
+    //     } else {
+    //         var username = credentials.name;
+    //         var password = credentials.pass;
+    //         var id = req.url.split("/")[3];
+    //         models.User.findAll({
+    //             where: {
+    //                 username
+    //             }
+    //         }).then(function(result) {
+    //             var valid = true;
+    //             valid = bcrypt.compareSync(password, result[0].password) && valid;
+    //             if (valid) {
+    //                 models.Product.findOne({
+    //                     where: {
+    //                         id: id
+                            
+    //                     }
+    //                 }).then(function(UserProduct) {
+    //                     if (UserProduct)
+    //                         res.status(200).send(UserProduct);
+    
+    //                     else
+    //                     res.status(403).send({
+    //                         message: 'Product not found or you are not authorized to access this product.'
+    //                       });
+    
+    //                 }).catch(function(err) {
+    //                     console.log(err);
+                        
+    //                 });
+    
+    //             } else {
+    //                 res.statusCode = 401
+    //                 res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+    //                 res.end('Access denied')
+    //             }
+    //         }).catch(function(err) {
+    //             res.statusCode = 401
+    //             res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+    //             res.end('Access denied')
+    //         });
+    
+    //     }
+    
+    // }
+
+    exports.updateProduct = (req, res) => {
+        var password = req.body.password;
+        var credentials = auth(req);
+        if (!credentials) {
+            
+            res.statusCode = 401
+            res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+            res.end('Unauthorized')
+        } else {
+            var username = credentials.name;
+            var password = credentials.pass;
+            var id = req.url.split("/")[3];
+            models.User.findAll({
+                    where: {
+                        username
+                    }
+                }).then(function(result) {
+                    var valid = true;
+                    valid = bcrypt.compareSync(password, result[0].password) && valid;
+                    if (valid) {
+    
+                        var name = req.body.name;
+                        var description = req.body.description;
+                        var sku = req.body.sku;
+                        var manufacturer = req.body.manufacturer;
+                      
+                        var quantity = req.body.quantity;
+                        
+                        var owner_user_id = result[0].id;
+                        var datevalts = new Date();
+                        datevalts = datevalts.toISOString();
+                        var dateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+                        
+
+                        if (!name || !description || !sku || !manufacturer || !quantity) {
+                            res.status(400).send({
+                                Message: "Please provide all required fields - name, date_added, date_last_updated, quantity, manufacturer, description, sku !"
+                            });
+    
+                        } else if (isNaN(quantity) || quantity < 0 ) {
+                            res.status(400).send({
+                                Message: "Please enter correct quantity in integer and it should be greater than 0 "
+                            });
+                        }else {
+                            models.Product.update({
+                                updated_ts: datevalts,
+                                name: name,
+                                description: description,
+                                sku: sku,
+                                manufacturer: manufacturer,
+                                quantity: quantity
+                            }, {
+                                where: {
+                                    id: id,
+                                    owner_user_id: result[0].id
+                                }
+                            }).then(function(ProductUpdate) {
+                                if (ProductUpdate[0] > 0) {
+                                    models.Product.findOne({
+                                        where: {
+                                            id: id
+                                        }
+                                    }).then(function(updatedProduct) {
+                                        res.status(204).send(updatedProduct);
+                                    }).catch(function(err) {
+                                        console.log(err);
+                                    });
+                                } else {
+                                    res.status(403).send({
+                                        message: 'Product not found or you are not authorized to access this product.'
+                                      });
+                                    
+
+                                }
+                            }).catch(function(err) {
+                                console.log(err);
+                                res.status(404).send({
+                                    message: 'Error while processing the request.'
+                                        });
+                            });
+    
+                        }
+                    } else {
+                        res.statusCode = 401
+                        res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                        res.end('Access denied')
+                    }
+                })
+                .catch(function(err) {
+                    console.log(err);
+                    res.statusCode = 401
+                    res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                    res.end('Access denied')
+                });
+        }
+    }
+
+    exports.deleteProduct = (req, res) => {
+        var credentials = auth(req);
+        if (!credentials) {
+            res.statusCode = 401
+            res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+            res.end('Unauthorized')
+        } else {
+            var username = credentials.name;
+            var password = credentials.pass;
+            var id = req.url.split("/")[3];
+            if(id.lengh === 0){
+                res.status(400).send("Please provide a valid Product id to delete !");
+            }
+            else{
+            models.User.findAll({
+                where: {
+                     username
+                }
+            }).then(function(result) {
+                var valid = true;
+                valid = bcrypt.compareSync(password, result[0].password) && valid;
+                if (valid) {
+                    models.Product.destroy({
+                        where: {
+                            id: id,
+                            owner_user_id: result[0].id
+                        }
+                    }).then(function(UserProduct) {
+                        if (UserProduct > 0)
+                            res.status(204).end();
+    
+                        else
+                        res.status(403).send({
+                            message: 'Product not found or you are not authorized to delete this product.'
+                            });
+    
+                    }).catch(function(err) {
+                        console.log(err);
+                        res.status(404).send({
+                        message: 'Error while processing the request.'
+                            });
+                    });
+    
+                } else {
+                    res.statusCode = 401
+                    res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                    res.end('Unauthorized')
+                }
+            }).catch(function(err) {
+                res.statusCode = 401
+                res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
+                res.end('Unauthorized')
+            });
+    
+         }
+
+        }
+    
+    }
+
+    exports.updatingProduct = (req, res) => {
+
+        var credentials = auth(req);
+        if (!credentials) {
+          res.statusCode = 401;
+          res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"');
+          res.end('Unauthorized');
+        } else {
+          var username = credentials.name;
+          var password = credentials.pass;
+      
+          models.User.findAll({
+            where: {
+              username
+            }
+          }).then(function(result) {
+            var valid = true;
+            valid = bcrypt.compareSync(password, result[0].password) && valid;
+            if (valid) {
+              
+              const id = req.params.id;
+              const updates = req.body;
+              models.Product.update(updates, {
+                where: {
+                  id: id,
+                  owner_user_id: result[0].id
+                }
+              }).then(function(rowsUpdated) {
+                if (rowsUpdated > 0) {
+                  res.status(204).send({
+                    message: 'Product updated successfully.'
+                  });
+                } else {
+                  res.status(403).send({
+                    message: 'Product not found or you are not authorized to access this product.'
+                  });
+                }
+              }).catch(function(err) {
+                console.log(err);
+                res.status(400).send({
+                  message: 'Error updating product.'
+                });
+              });
+            } else {
+              res.statusCode = 401;
+              res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"');
+              res.end('Access denied');
+            }
+          }).catch(function(err) {
+            console.log(err);
+            res.statusCode = 401;
+            res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"');
+            res.end('Access denied');
+          });
+        }
+      };
+      
