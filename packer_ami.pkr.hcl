@@ -48,6 +48,17 @@ build {
     source      = "./webapp.zip"
     destination = "/home/ec2-user/webapp.zip"
   }
+
+   provisioner "file" {
+    source      = "./web.service"
+    destination = "/tmp/web.service"
+  }
+
+   provisioner "file" {
+    source = "./nginx.conf"
+    destination = "/tmp/nginx.conf"
+  }
+
   provisioner "shell" {
     script = "./installSQLN.sh"
   }
