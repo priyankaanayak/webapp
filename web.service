@@ -1,0 +1,22 @@
+[Unit]
+Description="NODE JS SYSTEMD SERVICE"
+After=network.target
+Wants=mysqld.service
+
+[Service]
+Environment=PORT=3000
+Environment=MYSQL_USERNAME=root
+Environment=MYSQL_DATABASE=USER
+Environment=MYSQL_ROOT_PASSWORD=Password#8
+Environment=MYSQL_HOST=localhost
+Type=simple
+User=ec2-user
+ExecStart=/usr/bin/node /home/ec2-user/index.js
+# Restart=on-failure
+Restart=always
+RestartSec=500ms
+StartLimitInterval=0
+
+
+[Install]
+WantedBy=multi-user.target
