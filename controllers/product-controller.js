@@ -116,9 +116,10 @@ exports.viewProducts = (req, res) => {
                             id: req.params.id
                         }
                     }).then(function(UserProducts){
-                        
+                        if (UserProducts)
                             res.status(200).send(UserProducts);
-
+                        else
+                            res.status(404).end();
                      
                     }).catch(function(err){
                         console.log(err);
@@ -268,7 +269,7 @@ exports.viewProducts = (req, res) => {
                                     });
                                 } else {
                                     res.status(403).send({
-                                        message: 'Product not found or you are not authorized to access this product.'
+                                        message: 'You are not authorized to access this product.'
                                       });
                                     
 
@@ -331,7 +332,7 @@ exports.viewProducts = (req, res) => {
     
                         else
                         res.status(403).send({
-                            message: 'Product not found or you are not authorized to delete this product.'
+                            message: 'You are not authorized to delete this product.'
                             });
 
                     }).catch(function(err) {
@@ -411,7 +412,7 @@ exports.viewProducts = (req, res) => {
                   });
                 } else {
                   res.status(403).send({
-                    message: 'Product not found or you are not authorized to access this product.'
+                    message: 'You are not authorized to access this product.'
                   });
                 }
               }).catch(function(err) {

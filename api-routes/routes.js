@@ -1,6 +1,7 @@
 module.exports = (app) => {
     const user = require('../controllers/user-controller');
     const product = require('../controllers/product-controller');
+    const inavlidRoute = require('../controllers/invalidRoute');
 
     app.post('/v1/user',user.create);
     app.get('/v1/user/:userId',user.view);
@@ -14,4 +15,6 @@ module.exports = (app) => {
     app.put('/v1/product/:id',product.updateProduct);
     app.patch('/v1/product/:id',product.updatingProduct);
     app.delete('/v1/product/:id',product.deleteProduct);
+
+    app.all('*',inavlidRoute.routeError);
 }
