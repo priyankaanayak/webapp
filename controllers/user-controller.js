@@ -155,7 +155,8 @@ exports.update = (req, res) => {
 		res.statusCode = 401
 		res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
 		res.end('Unauthorized')
-	} else if (!first_name || !last_name || !password1) {
+	} 
+	else if (!first_name || !last_name || !password1) {
 		res.status(400).send({
 			Message: "Please provide all required fields - first_name, last_name, password, email_address!"
 		});
@@ -224,7 +225,7 @@ exports.update = (req, res) => {
 				else{
 					res.statusCode = 401
 					res.setHeader('WWW-Authenticate', 'Basic realm="user Authentication"')
-					res.end('Access denied')
+					res.end('Unauthorized')
 				}
 			  }).catch(function(err){
 				console.log(err);

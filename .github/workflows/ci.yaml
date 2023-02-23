@@ -42,8 +42,8 @@ jobs:
 
         - name: Run packer init
           id: init
-          run: "packer init ./packer_ami.pkr.hcl"
+          run: "packer init ."
 
         - name: Run packer validate
           id: validate
-          run: "packer validate ./packer_ami.pkr.hcl"
+          run: "packer validate -var-file=var_pkr.pkrvars.hcl ."
