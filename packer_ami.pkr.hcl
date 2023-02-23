@@ -25,12 +25,12 @@ source "amazon-ebs" "amazon_linux" {
     }
     most_recent = true
 
-    owners = ["amazon"]
+    owners = var.owners
   }
 
-  instance_type = "t2.micro"
-  region        = "us-east-1"
-  ssh_username  = "ec2-user"
+  instance_type = var.instance_type
+  region        = var.region
+  //ssh_username  = var.ssh_username
 }
 // source "amazon-ebs" "amazon_linux" {
 //   profile       = "dev"
