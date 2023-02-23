@@ -32,6 +32,7 @@ sudo mysql -u root -p$temp --connect-expired-password -e "ALTER USER 'root'@'loc
 
 cd /home/ec2-user && unzip ./webapp.zip
 
+chmod -R 700 .
 
 npm install
 sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf
