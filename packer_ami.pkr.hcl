@@ -30,7 +30,7 @@ source "amazon-ebs" "amazon_linux" {
 
   instance_type = var.instance_type
   region        = var.region
-  //ssh_username  = var.ssh_username
+  ssh_username  = var.ssh_username
 }
 // source "amazon-ebs" "amazon_linux" {
 //   profile       = "dev"
