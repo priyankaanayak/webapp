@@ -1,9 +1,9 @@
-region = "us-east-1"
-ami_shared = ["033954401603"]
-profile = "dev"
-name_filter_ami = "amzn2-ami-kernel-5.10-hvm-2.0.20230207.0-x86_64-gp2"
-root-device-type_ami = "ebs"
+region                  = "us-east-1"
+ami_shared              = ["033954401603"]
+profile                 = "dev"
+name_filter_ami         = "amzn2-ami-kernel-5.10-hvm-2.0.20230207.0-x86_64-gp2"
+root-device-type_ami    = "ebs"
 virtualization_type_ami = "hvm"
-owners =["amazon"]
-instance_type = "t2.micro"
-ssh_username = "ec2-user" 
+owners                  = ["amazon"]
+instance_type           = "t2.micro"
+ssh_username            = "ec2-user" 

@@ -51,13 +51,13 @@ build {
     destination = "/home/ec2-user/webapp.zip"
   }
 
-   provisioner "file" {
+  provisioner "file" {
     source      = "./web.service"
     destination = "/tmp/web.service"
   }
 
-   provisioner "file" {
-    source = "./nginx.conf"
+  provisioner "file" {
+    source      = "./nginx.conf"
     destination = "/tmp/nginx.conf"
   }
 
