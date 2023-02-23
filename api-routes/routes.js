@@ -1,7 +1,7 @@
 module.exports = (app) => {
     const user = require('../controllers/user-controller');
     const product = require('../controllers/product-controller');
-    const inavlidRoute = require('../controllers/invalidRoute');
+    const inavlidRoute = require('../invalidRoute');
 
     app.post('/v1/user',user.create);
     app.get('/v1/user/:userId',user.view);
