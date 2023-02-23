@@ -20,3 +20,38 @@ Steps to run web app
 3. Type "node index.js"
 4. Open Postman enter the port number in which the app is running- send the value.
 5. open MySQL workbench to check the value has been entered or not.
+
+## Packer
+
+Packer is a free and open source program for producing golden images from a single source configuration for various platforms.
+
+### Prerequisites
+
+- You can download packer from this link [link](https://developer.hashicorp.com/packer/downloads)
+- Make sure you have downloaded [AWS CLI](https://aws.amazon.com/cli/) and configure the profile
+
+### Initialize Packer
+
+To initialize packer:
+
+`packer init .`
+
+### Packer Validate
+
+To validate packer:
+
+`packer validate .`
+
+To include the var file:
+
+`packer validate -var-file=<file-name>.pkrvars.hcl .`
+
+### Packer Build
+
+To build the AMI Package:
+
+`packer build .`
+
+To include the var file:
+
+`packer build -var-file=<file-name>.pkrvars.hcl .`
