@@ -140,6 +140,7 @@ exports.view = (req, res) => {
 
 exports.update = (req, res) => {
 	var credentials = auth(req);
+	
 	var first_name = req.body.first_name;
 	var last_name = req.body.last_name;
 	var password1 = req.body.password;
