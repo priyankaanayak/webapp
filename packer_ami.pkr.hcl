@@ -12,16 +12,16 @@ locals {
 }
 
 source "amazon-ebs" "amazon_linux" {
-  profile  = "dev"
+  profile  = var.profile
   ami_name = "Custom_AMI-${local.timestamp}"
 
-  ami_users = ["033954401603"]
+  ami_users = var.ami_shared
 
   source_ami_filter {
     filters = {
-      name                = "amzn2-ami-kernel-5.10-hvm-2.0.20230207.0-x86_64-gp2"
-      root-device-type    = "ebs"
-      virtualization-type = "hvm"
+      name                = var.name_filter_ami
+      root-device-type    = var.root-device-type_ami
+      virtualization-type = var.virtualization_type_ami
     }
     most_recent = true
 
@@ -65,5 +65,4 @@ build {
     script = "./installSQLN.sh"
   }
 }
-
 

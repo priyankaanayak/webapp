@@ -69,7 +69,7 @@ exports.create = (req, res) => {
                             date_last_updated: datevalts,
                             owner_user_id: owner_user_id
                         }).then(function(Product) {
-                            res.status(201).send(Product);
+                            res.status(200).send(Product);
                         }).catch(function(err) {
                             console.log(err);
                             res.status(400).send("Issue while creating Product !");
