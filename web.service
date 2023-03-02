@@ -4,7 +4,7 @@ After=network.target
 Wants=mysqld.service
 
 [Service]
-# Environment=PORT=8000
+Environment=PORT=3000
 # Environment=DB_USERNAME=root
 # Environment=DB_DATABASE=USER
 # Environment=DB_PASSWORD=pAsSWo4#
@@ -12,9 +12,9 @@ Wants=mysqld.service
 EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
-ExecStart=/usr/bin/node /home/ec2-user/index.js
-Restart=on-failure
-# Restart=always
+ExecStart= /usr/bin/node /home/ec2-user/index.js
+# Restart=on-failure
+Restart=always
 RestartSec=500ms
 StartLimitInterval=0
 
