@@ -70,7 +70,7 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
             },
           })
             .then(function (Product) {
-              if (Product[0].attachment) {
+              if (Product[0].fileName) {
                 console.log(
                   "Product already has a file attached, please delete that before uploading a new File !"
                 );
@@ -124,7 +124,7 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
                           })
                             .then((response) => {
                               console.log(response);
-                              res.status(201).message("File uploaded");
+                              res.status(201).send("File uploaded");
                             })
                             .catch((err) => {
                               console.error(err);
@@ -161,7 +161,7 @@ module.exports = router;
 
 router.get(
   "/v1/product/:id/image/:image_id",
-  upload.single("image"),
+  // upload.single("image"),
   (req, res) => {
     var credentials = auth(req);
     if (!credentials) {
@@ -175,11 +175,20 @@ router.get(
       let image_id = req.params.image_id;
       let productId = req.params.id;
 
-      if (productId !== username) {
-        res.status(403).send("Access forbidden");
-      } else if (isNaN(productId) || isNaN(image_id)) {
-        res.status(404).send("Not found");
-      } else {
+      const isNumeric = function (str) {
+        if (typeof str != "string") return false;
+        return !isNaN(str) && !isNaN(parseFloat(str));
+      };
+
+      if (!isNumeric(productId) || !isNumeric(image_id)) {
+        res
+          .status(404)
+          .send("Please provide valid product id or valid image id");
+      }
+      // else if (owner_user_id !== userId) {
+      //   res.status(404).send("Access forbidden");
+      // }
+      else {
         models.User.findAll({
           where: {
             username,
@@ -199,20 +208,21 @@ router.get(
               })
                 .then(function (UserProduct) {
                   if (UserProduct) {
-                    models.Image.findOne({
-                      where: {
-                        image_id: image_id,
-                        product_id: productId,
-                      },
-                    })
-                      .then(function (File) {
-                        File.productId = undefined;
-
-                        res.status(200).send(File);
-                      })
-                      .catch(function (err) {
-                        res.status(404).send("Product is not found !");
-                      });
+                    // console.log("🤦‍♀️");
+                    res.status(200).send();
+                    // models.Image.findOne({
+                    //   where: {
+                    //     image_id: image_id,
+                    //     product_id: productId,
+                    //   },
+                    // })
+                    //   .then(function (File) {
+                    //     File.productId = undefined;
+                    //     res.status(200).send(File);
+                    //   })
+                    //   .catch(function (err) {
+                    //     res.status(404).send("Product is not found !");
+                    //   });
                   } else res.status(404).end();
                 })
                 .catch(function (err) {
@@ -240,7 +250,7 @@ router.get(
   }
 );
 
-router.get("/v1/product/:id/image", upload.single("image"), (req, res) => {
+router.get("/v1/product/:id/image", (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
     res.statusCode = 401;
@@ -253,66 +263,75 @@ router.get("/v1/product/:id/image", upload.single("image"), (req, res) => {
     let image_id = req.params.image_id;
     let productId = req.params.id;
 
-    if (!productId) {
-      res.status(404).send({
-        Message: "Please provide correct Product Id!!",
-      });
-    }
-    models.User.findAll({
-      where: {
-        username,
-      },
-    })
-      .then(function (User) {
-        var valid = true;
-        valid = bcrypt.compareSync(password, User[0].password) && valid;
-        if (valid) {
-          models.Image.findAll({
-            where: {
-              // owner_id: User[0].id,
-              product_id: productId,
-            },
-          })
-            .then(function (UserProduct) {
-              if (UserProduct) {
-                models.Image.findAll({
-                  where: {
-                    product_id: productId,
-                  },
-                })
-                  .then(function (Image) {
-                    Image.productId = undefined;
+    const isNumeric = function (str) {
+      if (typeof str != "string") return false;
+      return !isNaN(str) && !isNaN(parseFloat(str));
+    };
 
-                    res.status(200).send(Image);
-                  })
-                  .catch(function (err) {
-                    res.status(404).send("Product is not found !");
-                  });
-              } else res.status(404).end();
+    if (!isNumeric(req.params.productId) || !isNumeric(req.params.image_id)) {
+      res.status(404).send("Please provide valid product id or valid image id");
+    } else if (productId !== username) {
+      res.status(403).send("Access forbidden");
+    } else {
+      models.User.findAll({
+        where: {
+          username,
+        },
+      })
+        .then(function (User) {
+          var valid = true;
+          valid = bcrypt.compareSync(password, User[0].password) && valid;
+          if (valid) {
+            models.Image.findAll({
+              where: {
+                // owner_id: User[0].id,
+                product_id: productId,
+              },
             })
-            .catch(function (err) {
-              console.log(err);
-            });
-        } else {
+              .then(function (UserProduct) {
+                if (UserProduct) {
+                  models.Image.findAll({
+                    where: {
+                      product_id: productId,
+                    },
+                  })
+                    .then(function (Image) {
+                      Image.productId = undefined;
+
+                      res.status(200).send(Image);
+                    })
+                    .catch(function (err) {
+                      res.status(404).send("Product is not found !");
+                    });
+                } else res.status(404).end();
+              })
+              .catch(function (err) {
+                console.log(err);
+              });
+          } else {
+            res.statusCode = 401;
+            res.setHeader(
+              "WWW-Authenticate",
+              'Basic realm="user Authentication"'
+            );
+            res.end("Access denied");
+          }
+        })
+        .catch(function (err) {
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
             'Basic realm="user Authentication"'
           );
           res.end("Access denied");
-        }
-      })
-      .catch(function (err) {
-        res.statusCode = 401;
-        res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
-        res.end("Access denied");
-      });
+        });
+    }
   }
 });
 
 router.delete(
   "/v1/product/:id/image/:image_id",
-  upload.single("image"),
+
   (req, res) => {
     var credentials = auth(req);
     if (!credentials) {
