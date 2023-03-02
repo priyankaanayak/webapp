@@ -7,9 +7,28 @@ const awsConfig = require("../config/aws-config");
 const { where } = require("sequelize");
 const fs = require("fs");
 const util = require("util");
+const { v4 } = require("uuid");
 
 const unLink = util.promisify(fs.unlink);
-const upload = multer({ dest: __dirname + "/uploads/" });
+// const upload = multer({ dest: __dirname + "/uploads/" });
+
+const upload = multer({
+  dest: __dirname + "/uploads/",
+  fileFilter: (req, file, callback) => {
+    if (
+      file.mimetype == "image/png" ||
+      file.mimetype == "image/jpg" ||
+      file.mimetype == "image/jpeg"
+    ) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+      return callback(
+        new Error("Only .png, .jpg and .jpeg format are allowed")
+      );
+    }
+  },
+});
 
 const router = Router();
 
@@ -78,7 +97,9 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
                     //   res.send("There is an error");
                     // });
                   }
-                  var filePartition = `ProductId:${productId}/${req.file.originalname}`;
+                  var filePartition = `ProductId:${productId}/${v4()}/${
+                    req.file.originalname
+                  }`;
                   imageExists(filePartition).then((exists) => {
                     if (exists) {
                       console.log("Image already exists");
