@@ -9,7 +9,7 @@ const fs = require("fs");
 const util = require("util");
 
 const unLink = util.promisify(fs.unlink);
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: __dirname + "/uploads/" });
 
 const router = Router();
 
