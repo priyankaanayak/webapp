@@ -48,12 +48,7 @@ exports.create = (req, res) => {
               Message:
                 "Please provide all required fields - name, quantity, manufacturer, description, sku !",
             });
-          } else if (
-            isNaN(quantity) ||
-            quantity <= -1 ||
-            quantity >= 100 ||
-            parseInt(Number(quantity))
-          ) {
+          } else if (isNaN(quantity) || quantity <= -1 || quantity >= 100) {
             res.status(400).send({
               Message: "Please enter correct quantity!",
             });
