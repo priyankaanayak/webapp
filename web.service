@@ -1,3 +1,4 @@
+[Unit]
 Description="Systemd service for nodeJS"
 After=network.target
 Wants=mysqld.service
@@ -11,7 +12,7 @@ Wants=mysqld.service
 EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
-ExecStart=/usr/bin/node /home/ec2-user/index.js
+ExecStart=/usr/bin/node /home/ec2-user/ node index.js
 # Restart=on-failure
 Restart=always
 RestartSec=500ms
