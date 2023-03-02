@@ -1,6 +1,6 @@
 module.exports = (app) => {
-  const multer = require("multer");
-  const upload = multer({ dest: "uploads/" });
+  // const multer = require("multer");
+  // const upload = multer({ dest: "uploads/" });
 
   const user = require("../controllers/user-controller");
   const product = require("../controllers/product-controller");
@@ -31,19 +31,19 @@ module.exports = (app) => {
 
   // });
 
-  app.post(
-    "/v1/product/:productId/image",
-    upload.single("image"),
-    (request, response) => {
-      const file = request.files;
+  // app.post(
+  //   "/v1/product/:productId/image",
+  //   upload.single("image"),
+  //   (request, response) => {
+  //     const file = request.files;
 
-      console.log(file.image);
+  //     console.log(file.image);
 
-      //   const result =  ImageUpload(file, request.params.productId);
+  //     //   const result =  ImageUpload(file, request.params.productId);
 
-      response.send({ message: "Successfully uploaded the file" });
-    }
-  );
+  //     response.send({ message: "Successfully uploaded the file" });
+  //   }
+  // );
 
   // app.get('/v1/product/:productid/file/:fileId',file.getFile);
   // app.delete('/v1/product/:productid/file/:fileId',file.deleteFile);
