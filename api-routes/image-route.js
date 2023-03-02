@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const awsConfig = require("../config/aws-config");
 const { where } = require("sequelize");
-const { model } = require("mongoose");
 const fs = require("fs");
 const util = require("util");
 
