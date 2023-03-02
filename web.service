@@ -4,11 +4,12 @@ After=network.target
 Wants=mysqld.service
 
 [Service]
-Environment=PORT=3000
-Environment=MYSQL_USERNAME=root
-Environment=MYSQL_DATABASE=USER
-Environment=MYSQL_ROOT_PASSWORD=Password#8
-Environment=MYSQL_HOST=localhost
+# Environment=PORT=3000
+# Environment=MYSQL_USERNAME=root
+# Environment=MYSQL_DATABASE=USER
+# Environment=MYSQL_ROOT_PASSWORD=Password#8
+# Environment=MYSQL_HOST=localhost
+EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
 ExecStart=/usr/bin/node /home/ec2-user/index.js
