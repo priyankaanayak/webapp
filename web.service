@@ -13,8 +13,8 @@ EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
 ExecStart=/usr/bin/node /home/ec2-user/index.js
-# Restart=on-failure
-Restart=always
+Restart=on-failure
+# Restart=always
 RestartSec=500ms
 StartLimitInterval=0
 
