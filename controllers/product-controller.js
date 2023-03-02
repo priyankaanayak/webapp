@@ -52,6 +52,12 @@ exports.create = (req, res) => {
             res.status(400).send({
               Message: "Please enter correct quantity!",
             });
+          } else if (quantity !== undefined || quantity !== null) {
+            if (!Number.isInteger(quantity)) {
+              res.send(400).send({
+                Message: "Please enter correct quantity",
+              });
+            }
           } else {
             models.Product.create({
               //id: uuid,
