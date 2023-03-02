@@ -4,7 +4,7 @@ After=network.target
 Wants=mysqld.service
 
 [Service]
-Environment=PORT=3000
+# Environment=PORT=3000
 # Environment=DB_USERNAME=root
 # Environment=DB_DATABASE=USER
 # Environment=DB_PASSWORD=pAsSWo4#
@@ -20,4 +20,4 @@ StartLimitInterval=0
 
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target          
