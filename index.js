@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
 require("./api-routes/routes")(app);
 
 models.sequelize
-  .sync()
+  .sync({ alter: true })
   .then(function () {
     /**
      * Listen on provided port, on all network interfaces.

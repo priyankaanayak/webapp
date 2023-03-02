@@ -1,14 +1,13 @@
-[Unit]
-Description="NODE JS SYSTEMD SERVICE"
+Description="Systemd service for nodeJS"
 After=network.target
 Wants=mysqld.service
 
 [Service]
-# Environment=PORT=3000
-# Environment=MYSQL_USERNAME=root
-# Environment=MYSQL_DATABASE=USER
-# Environment=MYSQL_ROOT_PASSWORD=Password#8
-# Environment=MYSQL_HOST=localhost
+# Environment=PORT=8000
+# Environment=DB_USERNAME=root
+# Environment=DB_DATABASE=USER
+# Environment=DB_PASSWORD=pAsSWo4#
+# Environment=DB_HOST=localhost
 EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
