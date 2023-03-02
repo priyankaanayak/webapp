@@ -43,22 +43,32 @@ exports.create = (req, res) => {
           datevalts = datevalts.toISOString();
           var dateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 
-          if (!name || !description || !sku || !manufacturer || !quantity) {
+          if (
+            !name ||
+            !description ||
+            !sku ||
+            !manufacturer ||
+            !quantity ||
+            quantity === undefined ||
+            quantity === null ||
+            !Number.isInteger(quantity)
+          ) {
             res.status(400).send({
-              Message:
-                "Please provide all required fields - name, quantity, manufacturer, description, sku !",
+              Message: "Please provide all required fields",
             });
-          } else if (isNaN(quantity) || quantity <= -1) {
-            res.status(400).send({
-              Message: "Please enter correct quantity!",
-            });
-          } else if (quantity !== undefined || quantity !== null) {
-            if (!Number.isInteger(quantity)) {
-              res.send(400).send({
-                Message: "Please enter correct quantity",
-              });
-            }
-          } else {
+          }
+          // else if (isNaN(quantity) || quantity <= -1) {
+          //   res.status(400).send({
+          //     Message: "Please enter correct quantity!",
+          //   });
+          // } else if (quantity !== undefined || quantity !== null) {
+          //   if (!Number.isInteger(quantity)) {
+          //     res.send(400).send({
+          //       Message: "Please enter correct quantity",
+          //     });
+          //   }
+          // }
+          else {
             models.Product.create({
               //id: uuid,
               //created_ts: datevalts,

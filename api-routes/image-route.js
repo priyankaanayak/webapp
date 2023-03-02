@@ -8,6 +8,7 @@ const { where } = require("sequelize");
 const fs = require("fs");
 const util = require("util");
 const { v4 } = require("uuid");
+const { model } = require("mongoose");
 
 const unLink = util.promisify(fs.unlink);
 // const upload = multer({ dest: __dirname + "/uploads/" });
@@ -46,6 +47,12 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
     let productId = req.params.id;
     console.log(productId);
 
+    const file = req.file;
+    if (file === undefined || file === null) {
+      res.status(400).send({
+        Message: "Please add a file",
+      });
+    }
     if (!productId) {
       res.status(400).send({
         Message: "Please provide correct Product Id !!",
@@ -124,7 +131,7 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
                           })
                             .then((response) => {
                               console.log(response);
-                              res.status(201).send("File uploaded");
+                              res.status(201).send(response);
                             })
                             .catch((err) => {
                               console.error(err);
@@ -208,8 +215,13 @@ router.get(
               })
                 .then(function (UserProduct) {
                   if (UserProduct) {
-                    // console.log("🤦‍♀️");
-                    res.status(200).send();
+                    if (
+                      UserProduct === null ||
+                      UserProduct === undefined ||
+                      UserProduct.length === 0
+                    )
+                      // console.log("🤦‍♀️");
+                      res.status(200).send(UserProduct);
                     // models.Image.findOne({
                     //   where: {
                     //     image_id: image_id,
@@ -223,7 +235,13 @@ router.get(
                     //   .catch(function (err) {
                     //     res.status(404).send("Product is not found !");
                     //   });
-                  } else res.status(404).end();
+                  } else {
+                    res
+                      .status(404)
+                      .send(
+                        "Give right image id for the product id: " + productId
+                      );
+                  }
                 })
                 .catch(function (err) {
                   console.log(err);
@@ -268,11 +286,13 @@ router.get("/v1/product/:id/image", (req, res) => {
       return !isNaN(str) && !isNaN(parseFloat(str));
     };
 
-    if (!isNumeric(req.params.productId) || !isNumeric(req.params.image_id)) {
-      res.status(404).send("Please provide valid product id or valid image id");
-    } else if (productId !== username) {
-      res.status(403).send("Access forbidden");
-    } else {
+    if (!isNumeric(productId)) {
+      res.status(404).send("Please provide valid product id");
+    }
+    // if (productId !== username) {
+    //   res.status(403).send("Access forbidden");
+    // }
+    else {
       models.User.findAll({
         where: {
           username,
@@ -289,21 +309,39 @@ router.get("/v1/product/:id/image", (req, res) => {
               },
             })
               .then(function (UserProduct) {
+                console.log(UserProduct);
                 if (UserProduct) {
-                  models.Image.findAll({
-                    where: {
-                      product_id: productId,
-                    },
-                  })
-                    .then(function (Image) {
-                      Image.productId = undefined;
+                  if (
+                    UserProduct === null ||
+                    UserProduct === undefined ||
+                    UserProduct.length === 0
+                  ) {
+                    res.status(404).send("Images not found");
+                  } else res.status(200).send(UserProduct);
+                  // .then(function (UserProduct) {
+                  //   if (UserProduct) {
+                  //     models.Image.findAll({
+                  //       where: {
+                  //         product_id: productId,
+                  //       },
+                  //     })
+                  //       .then(function (Image) {
+                  //         Image.productId = undefined;
 
-                      res.status(200).send(Image);
-                    })
-                    .catch(function (err) {
-                      res.status(404).send("Product is not found !");
-                    });
-                } else res.status(404).end();
+                  //         res.status(200).send(Image);
+                  //       })
+                  //       .catch(function (err) {
+                  //         res.status(404).send("Product is not found !");
+                  //       });
+                  //   } else res.status(404).end();
+                  // })
+                } else {
+                  res
+                    .status(404)
+                    .send(
+                      "Give right image id for the product id: " + productId
+                    );
+                }
               })
               .catch(function (err) {
                 console.log(err);
@@ -329,96 +367,209 @@ router.get("/v1/product/:id/image", (req, res) => {
   }
 });
 
-router.delete(
-  "/v1/product/:id/image/:image_id",
+// router.delete(
+//   "/v1/product/:id/image/:image_id",
+//   (req, res) => {
+//     var credentials = auth(req);
+//     if (!credentials) {
+//       res.statusCode = 401;
+//       res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
+//       res.end("Access denied");
+//     } else {
+//       var username = credentials.name;
+//       var password = credentials.pass;
+//       // var productId = req.url.split("/")[3];
+//       let image_id = req.params.image_id;
+//       let productId = req.params.id;
 
-  (req, res) => {
-    var credentials = auth(req);
-    if (!credentials) {
-      res.statusCode = 401;
-      res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
-      res.end("Access denied");
+//       if (!productId || !image_id) {
+//         res.status(404).send({
+//           Message: "Please provide correct Product Id and Image Id !!",
+//         });
+//       }
+//       models.User.findAll({
+//         where: {
+//           username,
+//         },
+//       })
+//         .then(function (User) {
+//           var valid = true;
+//           valid = bcrypt.compareSync(password, User[0].password) && valid;
+//           if (valid) {
+//             models.Product.findOne({
+//               where: {
+//                 id: productId,
+//                 owner_user_id: User[0].id,
+//               },
+//             })
+//               .then(function (UserProduct) {
+//                 console.log("This is the user product");
+//                 console.log(UserProduct);
+
+//                 if (
+//                   UserProduct === undefined ||
+//                   UserProduct === null ||
+//                   UserProduct.length === 0
+//                 ) {
+//                   res.send(404).send("Forbidden");
+//                 }
+
+//                 if (UserProduct) {
+//                   models.Image.findOne({
+//                     where: {
+//                       image_id: image_id,
+//                       product_id: productId,
+//                     },
+//                   })
+//                     .then(function (ImageRet) {
+//                       var filePath = ImageRet.file_name;
+
+//                       console.log("Deleting the image");
+
+//                       awsConfig
+//                         .deleteFromS3(filePath)
+//                         .then(function (DelImage) {
+//                           models.Image.destroy({
+//                             where: {
+//                               image_id,
+//                               product_id: productId,
+//                             },
+//                           });
+
+//                           res.sendStatus(204);
+//                         });
+//                     })
+//                     .catch(function (err) {
+//                       res.status(404).send("Image record doesn't exist !!");
+//                     });
+//                 } else {
+//                   res.status(404).status("My Choice");
+//                 }
+
+//                 // ending the if(UserProduct)
+//               })
+//               .catch(function (err) {
+//                 console.log(err);
+//                 res.status(404).send("Product record doesn't exist !!");
+//               });
+//           } else {
+//             res.statusCode = 401;
+//             res.setHeader(
+//               "WWW-Authenticate",
+//               'Basic realm="user Authentication"'
+//             );
+//             res.end("Access denied");
+//           }
+//         })
+//         .catch(function (err) {
+//           res.statusCode = 401;
+//           res.setHeader(
+//             "WWW-Authenticate",
+//             'Basic realm="user Authentication"'
+//           );
+//           res.end("Access denied");
+//         });
+//     }
+//   }
+// );
+
+router.delete("/v1/product/:id/image/:image_id", (req, res) => {
+  var credentials = auth(req);
+  if (!credentials) {
+    res.statusCode = 401;
+    res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
+    res.end("Access denied");
+  } else {
+    var username = credentials.name;
+    var password = credentials.pass;
+    let image_id = req.params.image_id;
+    let productId = req.params.id;
+
+    if (
+      productId === null ||
+      productId === undefined ||
+      image_id === null ||
+      image_id === undefined
+    ) {
+      res.status(400).send("Please give valid Product ID or image ID");
     } else {
-      var username = credentials.name;
-      var password = credentials.pass;
-      // var productId = req.url.split("/")[3];
-      let image_id = req.params.image_id;
-      let productId = req.params.id;
-
-      if (!productId || !image_id) {
-        res.status(404).send({
-          Message: "Please provide correct Product Id and Image Id !!",
-        });
-      }
       models.User.findAll({
         where: {
           username,
         },
       })
-        .then(function (User) {
-          var valid = true;
-          valid = bcrypt.compareSync(password, User[0].password) && valid;
-          if (valid) {
+        .then((user) => {
+          console.log(user);
+
+          if (user === null || user === undefined || user.length === 0) {
+            res.status(404).send("User Not Found");
+          } else {
             models.Product.findOne({
               where: {
                 id: productId,
-                owner_user_id: User[0].id,
+                owner_user_id: user[0].id,
               },
             })
-              .then(function (UserProduct) {
-                if (UserProduct) {
+              .then((product) => {
+                if (
+                  product === null ||
+                  product === undefined ||
+                  product.length === 0
+                ) {
+                  res.status(403).send("Forbidden Access");
+                } else {
                   models.Image.findOne({
                     where: {
                       image_id: image_id,
                       product_id: productId,
                     },
                   })
-                    .then(function (ImageRet) {
-                      var filePath = ImageRet.file_name;
+                    .then((image) => {
+                      if (
+                        image === null ||
+                        image === undefined ||
+                        image.length === 0
+                      ) {
+                        res
+                          .status(404)
+                          .send(
+                            "Image Not found for the given product id: " +
+                              productId
+                          );
+                      } else {
+                        // If everything is a successfully executed
 
-                      console.log("Deleting the image");
+                        var filePath = image.file_name;
 
-                      awsConfig
-                        .deleteFromS3(filePath)
-                        .then(function (DelImage) {
-                          models.Image.destroy({
-                            where: {
-                              image_id,
-                              product_id: productId,
-                            },
-                          });
+                        awsConfig
+                          .deleteFromS3(filePath)
+                          .then((deleteImage) => {
+                            models.Image.destroy({
+                              where: {
+                                image_id,
+                              },
+                            })
+                              .then((result) =>
+                                res.status(204).send("Successfully Deleted")
+                              )
+                              .catch((error) => res.status(400).send(error));
+                          })
+                          .catch((error) => res.status(400).send(error));
 
-                          res.sendStatus(204);
-                        });
+                        // res.send("Success");
+                      }
                     })
-                    .catch(function (err) {
-                      res.status(404).send("Image record doesn't exist !!");
-                    });
-                } else {
-                  res.status(404).end();
+                    .catch((error) => res.status(400).send(error));
                 }
               })
-              .catch(function (err) {
-                console.log(err);
-                res.status(404).send("Product record doesn't exist !!");
-              });
-          } else {
-            res.statusCode = 401;
-            res.setHeader(
-              "WWW-Authenticate",
-              'Basic realm="user Authentication"'
-            );
-            res.end("Access denied");
+              .catch((err) =>
+                res.status(400).send("Couldn't Fetch any products")
+              );
           }
         })
-        .catch(function (err) {
-          res.statusCode = 401;
-          res.setHeader(
-            "WWW-Authenticate",
-            'Basic realm="user Authentication"'
-          );
-          res.end("Access denied");
+        .catch((err) => {
+          res.status(400).send("Unable to fetch user");
         });
     }
   }
-);
+});
