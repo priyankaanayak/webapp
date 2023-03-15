@@ -37,7 +37,7 @@ To initialize packer:
 
 `packer init .`
 
-### Packer Validate:
+### Packer Validate
 
 To validate packer:
 
