@@ -8,7 +8,7 @@ const { where } = require("sequelize");
 const fs = require("fs");
 const util = require("util");
 const { v4 } = require("uuid");
-const { model } = require("mongoose");
+//const { model } = require("mongoose");
 
 const unLink = util.promisify(fs.unlink);
 // const upload = multer({ dest: __dirname + "/uploads/" });
