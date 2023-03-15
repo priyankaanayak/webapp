@@ -37,7 +37,7 @@ To initialize packer:
 
 `packer init .`
 
-### Packer Validate
+### Packer Validate:
 
 To validate packer:
 
@@ -56,3 +56,5 @@ To build the AMI Package:
 To include the var file:
 
 `packer build -var-file=<file-name>.pkrvars.hcl .`
+
+
