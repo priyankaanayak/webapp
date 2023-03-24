@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 var cors = require("cors");
 var port = normalizePort(process.env.PORT || "3000");
 const imageRouter = require("./api-routes/image-route");
+const { winston, logger } = require("./winston/winston");
+// const logger = require("./winston/winston");
 
 // var fileUpload = require('express-fileupload');
 
@@ -27,6 +29,15 @@ models.sequelize
     /**
      * Listen on provided port, on all network interfaces.
      */
+
+    if (process.env.NODE_ENV !== "production") {
+      logger.add(
+        new winston.transports.Console({
+          format: winston.format.simple(),
+        })
+      );
+    }
+
     app.listen(port, function () {
       console.log("Express server listening on port " + port);
     });

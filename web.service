@@ -12,11 +12,13 @@ Wants=mysqld.service
 EnvironmentFile=/home/ec2-user/.env
 Type=simple
 User=ec2-user
-ExecStart= /usr/bin/node /home/ec2-user/index.js
+# ExecStart= /usr/bin/node /home/ec2-user/index.js
 # Restart=on-failure
 Restart=always
 RestartSec=500ms
 StartLimitInterval=0
+WorkingDirectory=/home/ec2-user
+ExecStart=/usr/bin/npm start
 
 
 [Install]

@@ -38,3 +38,8 @@ chmod -R 700 .
 npm install
 sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf
 sudo mv /tmp/web.service /etc/systemd/system/web.service
+
+sudo yum install amazon-cloudwatch-agent -y
+
+sudo mv /tmp/cloudwatch.json /home/ec2-user/cloudwatch.json
+

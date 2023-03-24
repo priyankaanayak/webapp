@@ -8,9 +8,14 @@ const { where } = require("sequelize");
 const fs = require("fs");
 const util = require("util");
 const { v4 } = require("uuid");
+const { logger } = require("../winston/winston");
+// const { logger } = require("../winston/winston");
 //const { model } = require("mongoose");
+const url = require("url");
 
 const unLink = util.promisify(fs.unlink);
+
+// const __dirname = url.fileUrlPath(new URL(".", import.meta.url));
 // const upload = multer({ dest: __dirname + "/uploads/" });
 
 const upload = multer({
@@ -36,6 +41,7 @@ const router = Router();
 router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Access denied");
@@ -49,11 +55,13 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
 
     const file = req.file;
     if (file === undefined || file === null) {
+      logger.error("Add file");
       res.status(400).send({
         Message: "Please add a file",
       });
     }
     if (!productId) {
+      logger.error("No Product Id found in request");
       res.status(400).send({
         Message: "Please provide correct Product Id !!",
       });
@@ -78,14 +86,18 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
           })
             .then(function (Product) {
               if (Product[0].fileName) {
-                console.log(
-                  "Product already has a file attached, please delete that before uploading a new File !"
+                logger.error(
+                  "Product already has a file attached, can't duplicate entry"
                 );
+                // console.log(
+                //   "Product already has a file attached, please delete that before uploading a new File !"
+                // );
               } else {
                 const file = req.file;
                 console.log(file);
                 if (file === undefined) {
                   // console.log(response);
+                  logger.error("Error");
                   res.status(404).send();
                 } else {
                   var productId = Product[0].id;
@@ -109,12 +121,16 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
                   }`;
                   imageExists(filePartition).then((exists) => {
                     if (exists) {
+                      logger.error("Image exists already");
                       console.log("Image already exists");
                       res.status(400).send({ message: "Image already exists" });
                     } else {
                       awsConfig
                         .uploadToS3(file, filePartition)
                         .then((result) => {
+                          logger.info(
+                            "File successfully uploaded to S3 Bucket"
+                          );
                           var productId = Product[0].id;
                           var file_name = filePartition;
                           var date_created = Date.now();
@@ -130,15 +146,23 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
                             s3_bucket_path: s3_bucket_path,
                           })
                             .then((response) => {
+                              logger.info(
+                                "Successful updated product with attached image"
+                              );
+                              statD.increment("web.imagepost");
                               console.log(response);
                               res.status(201).send(response);
                             })
                             .catch((err) => {
-                              console.error(err);
+                              // console.error(err);
+                              logger.error(
+                                "Couldn't updated Product for image" + err
+                              );
                               res.status(400).send(err);
                             });
                         })
                         .catch((error) => {
+                          logger.error("Error" + err);
                           console.error(error);
                           // res.send(error);
                         });
@@ -148,13 +172,15 @@ router.post("/v1/product/:id/image", upload.single("image"), (req, res) => {
               }
             })
             .catch(function (err) {
-              console.error(err);
+              // console.error(err);
+              logger.error("Product doesn't exist in system" + err);
               res.status(404).send("Product is not found !");
             });
         }
       })
       .catch(function (err) {
-        console.error(err);
+        // console.error(err);
+        logger.error("User doesn't exist in system" + err);
         res.statusCode = 401;
         res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
         res.end("unauthorized");
@@ -172,6 +198,7 @@ router.get(
   (req, res) => {
     var credentials = auth(req);
     if (!credentials) {
+      logger.error("No authorization credentials found in request");
       res.statusCode = 401;
       res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
       res.end("Access denied");
@@ -188,6 +215,7 @@ router.get(
       };
 
       if (!isNumeric(productId) || !isNumeric(image_id)) {
+        logger.error("Product Id or Image Id Not found in request");
         res
           .status(404)
           .send("Please provide valid product id or valid image id");
@@ -221,7 +249,8 @@ router.get(
                       UserProduct.length === 0
                     )
                       // console.log("🤦‍♀️");
-                      res.status(200).send(UserProduct);
+                      statD.increment("web.imageget");
+                    res.status(200).send(UserProduct);
                     // models.Image.findOne({
                     //   where: {
                     //     image_id: image_id,
@@ -236,6 +265,7 @@ router.get(
                     //     res.status(404).send("Product is not found !");
                     //   });
                   } else {
+                    logger.error("Give correct image and product id");
                     res
                       .status(404)
                       .send(
@@ -244,9 +274,11 @@ router.get(
                   }
                 })
                 .catch(function (err) {
+                  logger.error("Error" + err);
                   console.log(err);
                 });
             } else {
+              logger.error("Access Denied");
               res.statusCode = 401;
               res.setHeader(
                 "WWW-Authenticate",
@@ -256,6 +288,7 @@ router.get(
             }
           })
           .catch(function (err) {
+            logger.error("Access Denied" + err);
             res.statusCode = 401;
             res.setHeader(
               "WWW-Authenticate",
@@ -271,6 +304,7 @@ router.get(
 router.get("/v1/product/:id/image", (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Access denied");
@@ -287,6 +321,7 @@ router.get("/v1/product/:id/image", (req, res) => {
     };
 
     if (!isNumeric(productId)) {
+      logger.error("Enter valid product id");
       res.status(404).send("Please provide valid product id");
     }
     // if (productId !== username) {
@@ -317,25 +352,12 @@ router.get("/v1/product/:id/image", (req, res) => {
                     UserProduct.length === 0
                   ) {
                     res.status(404).send("Images not found");
-                  } else res.status(200).send(UserProduct);
-                  // .then(function (UserProduct) {
-                  //   if (UserProduct) {
-                  //     models.Image.findAll({
-                  //       where: {
-                  //         product_id: productId,
-                  //       },
-                  //     })
-                  //       .then(function (Image) {
-                  //         Image.productId = undefined;
-
-                  //         res.status(200).send(Image);
-                  //       })
-                  //       .catch(function (err) {
-                  //         res.status(404).send("Product is not found !");
-                  //       });
-                  //   } else res.status(404).end();
-                  // })
+                  } else {
+                    statD.increment("web.imagegetall");
+                    res.status(200).send(UserProduct);
+                  }
                 } else {
+                  logger.error("Enter valid image id and product id");
                   res
                     .status(404)
                     .send(
@@ -344,9 +366,11 @@ router.get("/v1/product/:id/image", (req, res) => {
                 }
               })
               .catch(function (err) {
+                logger.error("Error" + err);
                 console.log(err);
               });
           } else {
+            logger.error("Error");
             res.statusCode = 401;
             res.setHeader(
               "WWW-Authenticate",
@@ -356,6 +380,7 @@ router.get("/v1/product/:id/image", (req, res) => {
           }
         })
         .catch(function (err) {
+          logger.error("Error" + err);
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -476,6 +501,7 @@ router.get("/v1/product/:id/image", (req, res) => {
 router.delete("/v1/product/:id/image/:image_id", (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Access denied");
@@ -491,7 +517,8 @@ router.delete("/v1/product/:id/image/:image_id", (req, res) => {
       image_id === null ||
       image_id === undefined
     ) {
-      res.status(400).send("Please give valid Product ID or image ID");
+      logger.error("Product Id or Image Id Not found in request");
+      res.status(400).send("Please give valid Product ID or Image ID");
     } else {
       models.User.findAll({
         where: {
@@ -502,6 +529,7 @@ router.delete("/v1/product/:id/image/:image_id", (req, res) => {
           console.log(user);
 
           if (user === null || user === undefined || user.length === 0) {
+            logger.error("User not found");
             res.status(404).send("User Not Found");
           } else {
             models.Product.findOne({
@@ -516,6 +544,7 @@ router.delete("/v1/product/:id/image/:image_id", (req, res) => {
                   product === undefined ||
                   product.length === 0
                 ) {
+                  logger.error("Forbidden Access");
                   res.status(403).send("Forbidden Access");
                 } else {
                   models.Image.findOne({
@@ -530,6 +559,7 @@ router.delete("/v1/product/:id/image/:image_id", (req, res) => {
                         image === undefined ||
                         image.length === 0
                       ) {
+                        logger.error("Image not found for given product id");
                         res
                           .status(404)
                           .send(
@@ -544,31 +574,52 @@ router.delete("/v1/product/:id/image/:image_id", (req, res) => {
                         awsConfig
                           .deleteFromS3(filePath)
                           .then((deleteImage) => {
+                            logger.info("Deleted File from S3 Bucket");
                             models.Image.destroy({
                               where: {
                                 image_id,
                               },
                             })
-                              .then((result) =>
-                                res.status(204).send("Successfully Deleted")
-                              )
-                              .catch((error) => res.status(400).send(error));
+                              .then(function (result) {
+                                logger.info(
+                                  "Updated Product record after image deletion"
+                                );
+                                statD.increment("web.imagedelete");
+                                res.status(204).send("Successfully Deleted");
+                              })
+                              .catch(function (error) {
+                                logger.error(
+                                  "Couldn't Update Product record after image deletion" +
+                                    err
+                                );
+                                res.status(400).send(error);
+                              });
                           })
-                          .catch((error) => res.status(400).send(error));
+                          .catch(function (error) {
+                            logger.error(
+                              "Issue while deleting the file record" + err
+                            );
+                            res.status(400).send(error);
+                          });
 
                         // res.send("Success");
                       }
                     })
-                    .catch((error) => res.status(400).send(error));
+                    .catch(function (error) {
+                      logger.error("File not found" + err);
+                      res.status(400).send(error);
+                    });
                 }
               })
-              .catch((err) =>
-                res.status(400).send("Couldn't Fetch any products")
-              );
+              .catch(function (err) {
+                logger.error("Product not found" + err);
+                res.status(400).send("Couldn't Fetch any products");
+              });
           }
         })
-        .catch((err) => {
-          res.status(400).send("Unable to fetch user");
+        .catch(function (err) {
+          logger.error("User doesn't exist in system" + err);
+          res.status(401).send("Unable to fetch user");
         });
     }
   }
