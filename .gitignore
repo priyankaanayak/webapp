@@ -529,3 +529,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 *.zip
+
+.DS_STORE
