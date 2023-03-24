@@ -4,6 +4,8 @@ const saltRounds = 10;
 var models = require("../models");
 const { Sequelize, DataTypes } = require("sequelize");
 const uuidv4 = require("uuid");
+// const { logger } = require("../winston/winston");
+const { winston, logger } = require("../winston/winston");
 
 //const uuidv4 = require('uuid/v4');
 
@@ -13,7 +15,7 @@ const { INTEGER } = require("sequelize");
 exports.create = (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
-    console.log("hello");
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Access denied");
@@ -53,6 +55,7 @@ exports.create = (req, res) => {
             quantity === null ||
             !Number.isInteger(quantity)
           ) {
+            logger.error("Provide all details");
             res.status(400).send({
               Message: "Please provide all required fields",
             });
@@ -83,14 +86,18 @@ exports.create = (req, res) => {
               owner_user_id: owner_user_id,
             })
               .then(function (Product) {
+                logger.info("Product created successfully");
+                statD.increment("web.productcreate");
                 res.status(200).send(Product);
               })
               .catch(function (err) {
                 console.log(err);
+                logger.error("Couldn't create Product due to some issue" + err);
                 res.status(400).send("Issue while creating Product !");
               });
           }
         } else {
+          logger.error("User unauthorized");
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -100,6 +107,7 @@ exports.create = (req, res) => {
         }
       })
       .catch(function (err) {
+        logger.error("User doesn't exist in system" + err);
         console.log(err);
         res.statusCode = 401;
         res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
@@ -111,7 +119,8 @@ exports.create = (req, res) => {
 exports.viewProducts = (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
-    console.log("hello");
+    logger.error("No authorization credentials found in request");
+    // console.log("hello");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Access Denied");
@@ -128,19 +137,28 @@ exports.viewProducts = (req, res) => {
         valid = bcrypt.compareSync(password, result[0].password) && valid;
 
         if (valid) {
+          logger.info("Product found in system");
           models.Product.findOne({
             where: {
               id: req.params.id,
             },
           })
             .then(function (UserProducts) {
+              statD.increment("web.productview");
               if (UserProducts) res.status(200).send(UserProducts);
-              else res.status(404).end();
+              else {
+                logger.error("Error");
+                res.status(404).end();
+              }
             })
             .catch(function (err) {
+              logger.error(
+                "Product coudn't be found due to some issue: " + err
+              );
               console.log(err);
             });
         } else {
+          logger.error("User unauthorized");
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -155,6 +173,7 @@ exports.viewProducts = (req, res) => {
         //   }
       })
       .catch(function (err) {
+        logger.error("User doesn't exist in system" + err);
         res.statusCode = 401;
         res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
         res.end("Access denied");
@@ -219,6 +238,7 @@ exports.updateProduct = (req, res) => {
   var password = req.body.password;
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Unauthorized");
@@ -248,11 +268,13 @@ exports.updateProduct = (req, res) => {
           var dateRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 
           if (!name || !description || !sku || !manufacturer || !quantity) {
+            logger.error("Provide all details");
             res.status(400).send({
               Message:
                 "Please provide all required fields - name, description, sku, manufacturer, quantity   !",
             });
           } else if (isNaN(quantity) || quantity < 0) {
+            logger.error("Provide quantity in integer");
             res.status(400).send({
               Message:
                 "Please enter correct quantity in integer and it should be greater than 0 ",
@@ -282,18 +304,23 @@ exports.updateProduct = (req, res) => {
                     },
                   })
                     .then(function (updatedProduct) {
+                      logger.info("Product details updated in system");
+                      statD.increment("web.productupdate");
                       res.status(204).send(updatedProduct);
                     })
                     .catch(function (err) {
+                      logger.error("Couldn't update Product details" + err);
                       console.log(err);
                     });
                 } else {
+                  logger.info("Product didn't get updated");
                   res.status(403).send({
                     message: "You are not authorized to access this product.",
                   });
                 }
               })
               .catch(function (err) {
+                logger.error("Error occured while updating Product" + err);
                 console.log(err);
                 res.status(404).send({
                   message: "Error while processing the request.",
@@ -301,6 +328,7 @@ exports.updateProduct = (req, res) => {
               });
           }
         } else {
+          logger.error("User unauthorized");
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -310,7 +338,8 @@ exports.updateProduct = (req, res) => {
         }
       })
       .catch(function (err) {
-        console.log(err);
+        logger.error("User doesn't exist in system" + err);
+        // console.log(err);
         res.statusCode = 401;
         res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
         res.end("Access denied");
@@ -321,6 +350,7 @@ exports.updateProduct = (req, res) => {
 exports.deleteProduct = (req, res) => {
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Unauthorized");
@@ -337,6 +367,7 @@ exports.deleteProduct = (req, res) => {
     };
 
     if (id.lengh === 0 || !isNumeric(id)) {
+      logger.error("Provide valid product id");
       res.status(400).send("Please provide a valid Product id to delete !");
     } else {
       models.User.findAll({
@@ -356,19 +387,25 @@ exports.deleteProduct = (req, res) => {
               },
             })
               .then(function (UserProduct) {
+                logger.info("Product deleted Successfully");
+                statD.increment("web.productdelete");
                 if (UserProduct > 0) res.status(204).end();
-                else
+                else {
+                  logger.error("Not authorized to delete");
                   res.status(403).send({
                     message: "You are not authorized to delete this product.",
                   });
+                }
               })
               .catch(function (err) {
-                console.log(err);
+                // console.log(err);
+                logger.warn("Couldn't find product to delete" + err);
                 res.status(404).send({
                   message: "Error while processing the request.",
                 });
               });
           } else {
+            logger.error("User unauthorized");
             res.statusCode = 401;
             res.setHeader(
               "WWW-Authenticate",
@@ -378,6 +415,7 @@ exports.deleteProduct = (req, res) => {
           }
         })
         .catch(function (err) {
+          logger.error("User doesn't exist in system" + err);
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -400,6 +438,7 @@ exports.updatingProduct = (req, res) => {
   const RequestBodyKeys = req.body ? Object.keys(req.body) : null;
   let flag = true;
   if (!RequestBodyKeys || !RequestBodyKeys.length) {
+    logger.error("Correct details are not provided");
     return res
       .status(400)
       .json("Correct details are not provided for updation of information");
@@ -410,6 +449,7 @@ exports.updatingProduct = (req, res) => {
     }
   });
   if (!flag) {
+    logger.error("Update correct fields");
     userFlag = true;
     return res
       .status(403)
@@ -420,6 +460,7 @@ exports.updatingProduct = (req, res) => {
 
   var credentials = auth(req);
   if (!credentials) {
+    logger.error("No authorization credentials found in request");
     res.statusCode = 401;
     res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
     res.end("Unauthorized");
@@ -446,16 +487,20 @@ exports.updatingProduct = (req, res) => {
           })
             .then(function (rowsUpdated) {
               if (rowsUpdated > 0) {
+                logger.info("Product details updated in system");
+                statD.increment("web.productupdate");
                 res.status(204).send({
                   message: "Product updated successfully.",
                 });
               } else {
+                logger.error("Not authorized for this product");
                 res.status(403).send({
                   message: "You are not authorized to access this product.",
                 });
               }
             })
             .catch(function (err) {
+              logger.error("Couldn't update Product details" + err);
               console.log(err);
 
               res.status(400).send({
@@ -463,6 +508,7 @@ exports.updatingProduct = (req, res) => {
               });
             });
         } else {
+          logger.error("User unauthorized");
           res.statusCode = 401;
           res.setHeader(
             "WWW-Authenticate",
@@ -472,7 +518,8 @@ exports.updatingProduct = (req, res) => {
         }
       })
       .catch(function (err) {
-        console.log(err);
+        // console.log(err);
+        logger.error("User doesn't exist in system" + err);
         res.statusCode = 401;
         res.setHeader("WWW-Authenticate", 'Basic realm="user Authentication"');
         res.end("Access denied");

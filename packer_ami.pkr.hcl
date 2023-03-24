@@ -61,6 +61,11 @@ build {
     destination = "/tmp/nginx.conf"
   }
 
+  provisioner "file" {
+    source      = "./cloudwatch.json"
+    destination = "/tmp/cloudwatch.json"
+  }
+
   provisioner "shell" {
     script = "./installSQLN.sh"
   }
