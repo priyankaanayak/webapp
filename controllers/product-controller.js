@@ -6,6 +6,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 const uuidv4 = require("uuid");
 // const { logger } = require("../winston/winston");
 const { winston, logger } = require("../winston/winston");
+const statD = require("../statsD/statD");
 
 //const uuidv4 = require('uuid/v4');
 
