@@ -12,6 +12,7 @@ const { logger } = require("../winston/winston");
 // const { logger } = require("../winston/winston");
 //const { model } = require("mongoose");
 const url = require("url");
+const statD = require("../statsD/statD");
 
 const unLink = util.promisify(fs.unlink);
 
