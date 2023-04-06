@@ -13,6 +13,7 @@ const { logger } = require("../winston/winston");
 //const { model } = require("mongoose");
 const url = require("url");
 const statD = require("../statsD/statD");
+const WrongFormatError = require("../custom-errors/WrongFormatError");
 
 const unLink = util.promisify(fs.unlink);
 
@@ -30,8 +31,9 @@ const upload = multer({
       callback(null, true);
     } else {
       callback(null, false);
+      logger.error("Provided invalid  file extension");
       return callback(
-        new Error("Only .png, .jpg and .jpeg format are allowed")
+        new WrongFormatError("Only .png, .jpg and .jpeg format are allowed")
       );
     }
   },
