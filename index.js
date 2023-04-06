@@ -7,6 +7,7 @@ var port = normalizePort(process.env.PORT || "3000");
 const imageRouter = require("./api-routes/image-route");
 const { winston, logger } = require("./winston/winston");
 // const logger = require("./winston/winston");
+const errorHandler = require("./error-middleware/error-handler");
 
 // var fileUpload = require('express-fileupload');
 
@@ -16,6 +17,7 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(imageRouter);
 // app.use(fileUpload());
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.json({ message: "Hello Cloud !!" });
