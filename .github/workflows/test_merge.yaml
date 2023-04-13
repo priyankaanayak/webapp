@@ -42,7 +42,6 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
@@ -64,3 +63,48 @@ jobs:
       - name: Run `packer build`
         id: build
         run: "packer build -var-file=var_pkr.pkrvars.hcl ."
+
+  Refresh_Autoscaling_Group:
+    needs: pack_validation
+    runs-on: ubuntu-latest
+
+    steps:
+      # - uses: actions/checkout@v3
+
+      - name: Checking AWS Version
+        run: "aws --version"
+
+      - name: Fetching AWS Credentials for demo account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # aws-region: us-east-1
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Auto Refreshing the auto scaling group
+        run: |
+          export ami_id="$(aws ec2 describe-images \
+            --owners ${{ secrets.OWNER_ID }} \
+            --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
+            --output text)"
+
+          export launch_template_id="$(aws ec2 describe-launch-templates \
+            --query 'sort_by(LaunchTemplates, &CreateTime)[-1].LaunchTemplateId' \
+          )"
+
+          export launch_template_without_quotes=`sed -e 's/^"//' -e 's/"$//' <<<"$launch_template_id"`
+
+          if ! [-z "$launch_template_without_quotes" ]
+          then
+
+            aws ec2 create-launch-template-version --launch-template-id $launch_template_without_quotes \
+              --version-description Version2.0Template \
+              --source-version 1 \
+              --launch-template-data ImageId=$ami_id \
+              --region us-east-1
+
+            aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name created_by_terraform
