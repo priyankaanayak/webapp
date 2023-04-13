@@ -71,7 +71,7 @@ jobs:
     steps:
       # - uses: actions/checkout@v3
 
-- name: Checking AWS Version
+      - name: Checking AWS Version
         run: "aws --version"
 
       - name: Configure AWS Credentials for dev
