@@ -114,7 +114,7 @@ jobs:
             --auto-scaling-group-name LaunchTemplated_created_by_Terraform
           )"
 
-          if  [[ ! -z $launch_template_without_quotes && ! -z $auto_scaling_name ]]
+          if [ -z $launch_template_without_quotes ] && [ -z $auto_scaling_name ]
           then
             echo "Launch Template Found"
 
