@@ -57,4 +57,6 @@ To include the var file:
 
 `packer build -var-file=<file-name>.pkrvars.hcl .`
 
+### To import the certificate
 
+`aws acm import-certificate --certificate fileb://certificate.pem --certificate-chain fileb://certificate_chain.pem --private-key fileb://private.pem --profile demo`
