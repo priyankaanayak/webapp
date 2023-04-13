@@ -114,8 +114,9 @@ jobs:
             --auto-scaling-group-name LaunchTemplated_created_by_Terraform
           )"
 
-          if  [[ !  "$launch_template_without_quotes"==null &&  ! "$auto_scaling_name"==null ]]
+          if  [[ "$launch_template_without_quotes"==null && "$auto_scaling_name"==null ]]
           then
+            echo "Launch Template Found"
 
             aws ec2 create-launch-template-version --launch-template-id $launch_template_without_quotes \
               --version-description Version2.0Template \
