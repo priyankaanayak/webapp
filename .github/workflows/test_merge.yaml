@@ -71,10 +71,11 @@ jobs:
     steps:
       # - uses: actions/checkout@v3
 
-      - name: Checking AWS Version
+- name: Checking AWS Version
         run: "aws --version"
 
-      - name: Fetching AWS Credentials for demo account
+      - name: Configure AWS Credentials for dev
+        if: ${{ vars.ENV == 'dev' }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           # aws-region: us-east-1
@@ -82,6 +83,17 @@ jobs:
           # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure AWS Credentials for demo
+        if: ${{ vars.ENV == 'prod' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # aws-region: us-east-1
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_2 }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_2 }}
           aws-region: us-east-1
 
       - name: Auto Refreshing the auto scaling group
@@ -97,7 +109,12 @@ jobs:
 
           export launch_template_without_quotes=`sed -e 's/^"//' -e 's/"$//' <<<"$launch_template_id"`
 
-          if ! [-z "$launch_template_without_quotes" ]
+          export auto_scaling_name="$(aws autoscaling describe-auto-scaling-groups \
+            --query "AutoScalingGroups[0].AutoScalingGroupName" \
+            --auto-scaling-group-name created_by_terraform
+          )"
+
+          if  [[ ! -z "$launch_template_without_quotes" &&  ! -z "$auto_scaling_name" ]]
           then
 
             aws ec2 create-launch-template-version --launch-template-id $launch_template_without_quotes \
@@ -107,5 +124,8 @@ jobs:
               --region us-east-1
 
             aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name LaunchTemplated_created_by_Terraform
-            fi
+            --auto-scaling-group-name created_by_terraform
+          else
+            echo "Launch Template Not Found"
+            exit 0  
+          fi
