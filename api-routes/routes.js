@@ -12,7 +12,7 @@ module.exports = (app) => {
   app.get("/v1/user/:userId", user.view);
   app.put("/v1/user/:userId", user.update);
 
-  app.get("/pri", user.health);
+  app.get("/healthz", user.health);
 
   app.post("/v1/product", product.create);
   app.get("/v1/product/:id", product.viewProducts);
