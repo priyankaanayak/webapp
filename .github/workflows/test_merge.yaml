@@ -128,5 +128,4 @@ jobs:
             --auto-scaling-group-name LaunchTemplated_created_by_Terraform
           else
             echo "Launch Template Not Found"
-            exit 0  
           fi
