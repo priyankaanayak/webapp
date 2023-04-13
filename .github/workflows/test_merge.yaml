@@ -107,5 +107,5 @@ jobs:
               --region us-east-1
 
             aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name created_by_terraform
+            --auto-scaling-group-name LaunchTemplated_created_by_Terraform
             fi
